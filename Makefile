@@ -19,11 +19,18 @@ $(error TAG needs to end with build metadata: $(BUILD_META))
 endif
 
 GOLANG_VERSION := $(shell ./scripts/golang-version.sh $(TAG))
-
+CREATED ?= $(shell date --iso-8601=s -u)
+REF ?= $(shell git symbolic-ref HEAD)
+## --label "org.opencontainers.image.url=https://github.com/rancher/image-build-cri" \
+## --label "org.opencontainers.image.created=$(CREATED)" \
+## --label "org.opencontainers.image.authors=brooksn" \
+## --label "org.opencontainers.image.ref.name=$(REF)" \
+## --target builder \
+##
+##
 .PHONY: image-build
 image-build:
 	docker build \
-		--pull \
 		--build-arg PKG=$(PKG) \
 		--build-arg SRC=$(SRC) \
 		--build-arg TAG=$(TAG:$(BUILD_META)=) \
@@ -31,6 +38,10 @@ image-build:
  		--build-arg GO_IMAGE=rancher/hardened-build-base:$(GOLANG_VERSION) \
 		--tag $(ORG)/hardened-crictl:$(TAG) \
 		--tag $(ORG)/hardened-crictl:$(TAG)-$(ARCH) \
+		--label "org.opencontainers.image.url=https://github.com/brooksn/image-build-crictl" \
+		--label "org.opencontainers.image.created=$(CREATED)" \
+		--label "org.opencontainers.image.authors=brooksn" \
+		--label "org.opencontainers.image.ref.name=$(REF)" \
 	.
 
 .PHONY: image-push
